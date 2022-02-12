@@ -8,13 +8,13 @@ local spawnTowerEvent = events:WaitForChild("SpawnTower")
 local tower = {}
 
 function tower.Spawn(player, name, cframe)
-    local towerExists = ReplicatedStorage.Tower:FindFirstChild(name)
+    local towerExists = ReplicatedStorage.Towers:FindFirstChild(name)
 
     if towerExists then
         local newTower = towerExists:Clone()
         newTower.HumanoidRootPart.CFrame = cframe
         newTower.Parent = workspace.Towers
-        newTower.HumanoidRootPart:SetNewworkOwner(nil)
+        newTower.HumanoidRootPart:SetNetworkOwner(nil)
         
         for i, object in ipairs(newTower:GetDescendants()) do
             if object:IsA("BasePart") then

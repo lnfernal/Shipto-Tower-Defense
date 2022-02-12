@@ -8,7 +8,10 @@ local events = ReplicatedStorage:WaitForChild("Events")
 local spawnTowerEvent = events:WaitForChild("SpawnTower")
 local camera = workspace.CurrentCamera
 local gui = script.Parent
+
 local towerToSpawn = nil
+local canPlace = false
+local rotation = 0
 
 local function MouseRaycast(blacklist)
     local mousePosition = UserInputService:GetMouseLocation()
@@ -27,6 +30,7 @@ local function RemovePlaceholderTower()
     if towerToSpawn then
         towerToSpawn:Destroy()
         towerToSpawn = nil
+        rotation = 0
     end
 end
 
@@ -34,7 +38,7 @@ local function AddPlaceholderTower(name)
     local towerExists = towers:FindFirstChild(name)
 
     if towerExists then
-        local towerToSpawn = towerExists:Clone()
+        towerToSpawn = towerExists:Clone()
         towerToSpawn.Parent = workspace.Towers
 
         for i, object in ipairs(towerToSpawn:GetDescendants()) do
@@ -44,6 +48,15 @@ local function AddPlaceholderTower(name)
             end
         end
     end
+end
+
+local function ColorPlaceholderTower(color)
+    for i, object in ipairs(towerToSpawn:GetDescendants()) do
+        if object:IsA("BasePart") then
+            PhysicsService:SetPartCollisionGroup(object, "Tower")     
+            object.Color = color
+        end
+    end 
 end
 
 gui.Spawn.Activated:Connect(function()
@@ -57,26 +70,35 @@ UserInputService.InputBegan:Connect(function(input, processed)
 
     if towerToSpawn then
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            -- if item :IsA("BasePart") then
-            --     item.Color = Color3.new(1,0,0) 
-            -- end
-            spawnTowerEvent:FireServer(towerToSpawn.Name, towerToSpawn.PriamaryPart.CFrame)
-        end 
-    end
+            if canPlace then
+                spawnTowerEvent:FireServer(towerToSpawn.Name, towerToSpawn.PrimaryPart.CFrame)
+                RemovePlaceholderTower()
+            end
+                RemovePlaceholderTower()
+            end
+        elseif input.KeyCode == Enum.KeyCode.R then
+            rotation += 90
+        end  
 end)
 
 Runservice.RenderStepped:Connect(function()
     if towerToSpawn then
         local result = MouseRaycast({towerToSpawn})
         if result and result.Instance then
-            RemovePlaceholderTower()
+            if result.Instance.Parent.Name == "TowerArea" then
+                 canPlace = true
+                 ColorPlaceholderTower(Color3.new(0,1,0))
+            else
+                canPlace = false
+                ColorPlaceholderTower(Color3.new(1,0,0))
+            end
             -- towerToSpawn = result.Instance
             local x = result.Position.X
-            local y = result.Position.Y + towerToSpawn.Humanoid.HipeHeight + (towerToSpawn.PriamaryPart.Size.Y / 2)
+            local y = result.Position.Y + towerToSpawn.Humanoid.HipHeight + (towerToSpawn.PrimaryPart.Size.Y / 2)
             local z = result.Position.Z
     
-            local cframe = CFrame.new(x, y, z)
-            towerToSpawn:SetPrimaryPartCFrame(cframe)
+            local CFrame = CFrame.new(x, y, z) * CFrame.Angles(0, math.rad(rotation), 0)
+            towerToSpawn:SetPrimaryPartCFrame(CFrame)
         end 
     end
 end)

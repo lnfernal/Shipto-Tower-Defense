@@ -24,7 +24,7 @@ function mob.Spawn(name, quantity ,map)
             local newMob = mobExists:Clone()
             newMob.HumanoidRootPart.CFrame = map.Start.CFrame
             newMob.Parent = workspace.Mobs
-            -- newMob.HumanoidRootPart:SetNewworkOwner(nil)
+            newMob.HumanoidRootPart:SetNetworkOwner(nil)
             
             for i, object in ipairs(newMob:GetDescendants()) do
                 if object:IsA("BasePart") then
